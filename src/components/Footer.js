@@ -134,7 +134,7 @@ const Footer = () => {
         {/* Footer Bottom */}
         <div className="footer-bottom">
           <div className="footer-bottom-content">
-            <p>&copy; 2024 HealthCall. All rights reserved.</p>
+            <p>&copy; 2024 NationalsLab. All rights reserved.</p>
             <div className="footer-bottom-links">
               <a href="/privacy">Privacy Policy</a>
               <a href="/terms">Terms of Service</a>

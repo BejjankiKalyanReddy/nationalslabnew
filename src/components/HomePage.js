@@ -13,7 +13,8 @@ const HomePage = () => {
       {/* Hero Section */}
       <div className="hero-section">
         <div className="hero-content">
-          <h1 className="hero-title">Welcome to HealthCall</h1>
+          <h3 className="hero-title">Welcome to</h3>
+          <h1 className="hero-title">NationalsLab</h1>
           <p className="hero-subtitle">
             Your trusted partner for comprehensive diagnostic services and
             health insurance solutions
@@ -34,7 +35,6 @@ const HomePage = () => {
           </div>
         </div>
         <div className="hero-image">
-          {/* <div className="healthcare-icon">🏥</div> */}
           <img
             src={"/Bg_NationalsLab.webp"}
             alt="Home"
@@ -111,7 +111,7 @@ const HomePage = () => {
 
       {/* Features Section */}
       <div className="features-section">
-        <h2 className="section-title">Why Choose HealthCall?</h2>
+        <h2 className="section-title">Why Choose NationalsLab?</h2>
         <div className="features-grid">
           <div className="feature-item">
             <div className="feature-icon">⚡</div>
