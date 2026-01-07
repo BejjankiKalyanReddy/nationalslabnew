@@ -1,4 +1,4 @@
-# HealthCall React Application
+# NationalsLab React Application
 
 This is a React-based healthcare diagnostic services application migrated from vanilla HTML/CSS/JavaScript.
 
@@ -38,7 +38,7 @@ src/
    npm start
    ```
 
-3. Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+3. Open https://nationalslab.com/ to view it in the browser.
 
 ## Available Scripts
 
