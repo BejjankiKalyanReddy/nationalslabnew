@@ -125,7 +125,7 @@ const InsurancePage = () => {
         </div>
         <button className="advice-btn" onClick={handleAdviceClick}>
           <span className="contact-icon">☎️ {"  "}</span>
-          <a href="tel:+916292108108">Get Advice</a>
+          <a href="tel:+919492888989">Get Advice</a>
         </button>
         <p className="advice-note">
           Speak with our advisors for personalized recommendations.
