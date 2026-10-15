@@ -16,21 +16,20 @@ const HomePage = () => {
           <h3 className="hero-title">Welcome to</h3>
           <h1 className="hero-title">NationalsLab</h1>
           <p className="hero-subtitle">
-            Your trusted partner for comprehensive diagnostic services and
-            health insurance solutions
+            Your trusted partner for doorstep diagnostic sample collection, comprehensive health checkups, and verified lab results.
           </p>
           <div className="hero-buttons">
             <button
               className="btn-primary"
               onClick={() => handleNavigation("/diagnostics")}
             >
-              Book Diagnostic Test
+              🔬 Book Diagnostic Test
             </button>
             <button
               className="btn-secondary"
               onClick={() => handleNavigation("/insurance")}
             >
-              Get Insurance Quote
+              🛡️ Get Insurance Quote
             </button>
           </div>
         </div>
@@ -42,6 +41,7 @@ const HomePage = () => {
           />
         </div>
       </div>
+
 
       {/* Services Section */}
       <div className="services-section">

@@ -64,6 +64,9 @@ const Footer = () => {
               <li>
                 <a href="/profile">Profile</a>
               </li>
+              <li>
+                <a href="/admin" style={{ color: '#0891b2', fontWeight: 700 }}>🔐 Lab Admin Portal</a>
+              </li>
             </ul>
           </div>
 

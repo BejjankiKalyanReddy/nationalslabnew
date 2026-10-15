@@ -1,4 +1,4 @@
-export const testData = [
+const rawTestData = [
     { name: "Complete Blood Count (CBC) - 3 Part", currate: 225, orrate: 250 },
     { name: "Malarial (Parasite V & F)", currate: 315, orrate: 350 },
     { name: "Widal Test", currate: 180, orrate: 200 },
@@ -74,4 +74,13 @@ export const testData = [
     { name: "Anemia Profile", currate: 1800, orrate: 2000 },
     { name: "Ante Natel Profile Rapid", currate: 1080, orrate: 1200 },
   ];
+
+export const testData = rawTestData.map((t, idx) => ({
+  ...t,
+  testId: 10000 + idx,
+  test_id: 10000 + idx,
+  testName: t.name,
+  testDiscountedPrice: t.currate,
+  testOriginalPrice: t.orrate,
+}));
   
