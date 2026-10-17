@@ -218,6 +218,29 @@ export const updateTest = (test) =>
 export const deleteTest = (testId) =>
   request('DELETE', `/api/test/delete/${testId}`);
 
+export const bulkUploadTests = async (file, labId = LAB_ID) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('labId', String(labId));
+
+  const token = localStorage.getItem('adminToken') || DEFAULT_ADMIN_TOKEN;
+  const res = await fetch(`${BASE_URL}/api/test/bulk-upload`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
+  });
+
+  if (!res.ok) {
+    let errorText = '';
+    try { errorText = await res.text(); } catch (_) {}
+    throw new Error(errorText || 'Bulk upload failed');
+  }
+
+  return await res.json();
+};
+
 // ─── Admin Time Slots Management ─────────────────────────────────────────────
 export const getAdminSlots = (labId = LAB_ID) =>
   request('GET', `/api/timeslots/admin/lab/${labId}`);

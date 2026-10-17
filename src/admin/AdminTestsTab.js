@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { createTest, updateTest, deleteTest, LAB_ID } from '../services/api';
+import React, { useState, useRef } from 'react';
+import * as XLSX from 'xlsx';
+import { createTest, updateTest, deleteTest, bulkUploadTests, LAB_ID } from '../services/api';
 
 const AdminTestsTab = ({ tests = [], currentLab = null, onRefresh }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -8,6 +9,15 @@ const AdminTestsTab = ({ tests = [], currentLab = null, onRefresh }) => {
   const [editingTest, setEditingTest] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Bulk Excel Upload State
+  const [bulkModalOpen, setBulkModalOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [parsedTests, setParsedTests] = useState([]);
+  const [bulkLoading, setBulkLoading] = useState(false);
+  const [bulkError, setBulkError] = useState('');
+  const [bulkSuccess, setBulkSuccess] = useState('');
+  const fileInputRef = useRef(null);
 
   const [form, setForm] = useState({
     testName: '',
@@ -130,6 +140,223 @@ const AdminTestsTab = ({ tests = [], currentLab = null, onRefresh }) => {
     }
   };
 
+  // Download formatted Excel Template matching backend specification
+  const handleDownloadTemplate = () => {
+    const headers = [
+      'Test Name',
+      'Original Price',
+      'Discounted Price',
+      'Category Name',
+      'Description',
+      'Test Type',
+      'Report Time',
+      'Availability',
+      'Collection Tube',
+      'Test Code',
+      'Method',
+      'Schedule',
+      'Is Package',
+      'Package Test IDs',
+      'Test Image',
+      'Outsource Lab',
+      'Outsource Lab L-Price',
+      'Outsource Lab B2B Price',
+    ];
+
+    const sampleRows = [
+      [
+        'Complete Blood Count (CBC)',
+        500,
+        450,
+        'Hematology',
+        'Comprehensive automated CBC checkup with 24 parameters',
+        'Blood',
+        '12 Hours',
+        'Yes',
+        'EDTA (Purple)',
+        'CBC101',
+        'Automated Cell Counter',
+        'Daily',
+        'No',
+        '',
+        '',
+        '',
+        0,
+        0,
+      ],
+      [
+        'Lipid Profile Basic',
+        900,
+        699,
+        'Biochemistry',
+        'Cholesterol, Triglycerides, HDL, LDL, VLDL cholesterol',
+        'Blood',
+        '12 Hours',
+        'Yes',
+        'SST / Yellow',
+        'LIP102',
+        'Spectrophotometry',
+        'Daily',
+        'No',
+        '',
+        '',
+        '',
+        0,
+        0,
+      ],
+      [
+        'Liver Function Test (LFT)',
+        850,
+        650,
+        'Biochemistry',
+        'Bilirubin, SGOT, SGPT, Alkaline Phosphatase, Total Protein',
+        'Blood',
+        '12 Hours',
+        'Yes',
+        'SST / Yellow',
+        'LFT103',
+        'Photometric',
+        'Daily',
+        'No',
+        '',
+        '',
+        '',
+        0,
+        0,
+      ],
+      [
+        'Thyroid Profile (T3, T4, TSH)',
+        700,
+        499,
+        'Endocrinology',
+        'Screening of thyroid gland hormone regulation and metabolism',
+        'Blood',
+        '24 Hours',
+        'Yes',
+        'Clot Activator / Red',
+        'THY104',
+        'CLIA',
+        'Daily',
+        'No',
+        '',
+        '',
+        '',
+        0,
+        0,
+      ],
+      [
+        'Fasting Blood Sugar (FBS)',
+        150,
+        99,
+        'Diabetes',
+        'Plasma glucose evaluation after overnight fasting',
+        'Blood',
+        '6 Hours',
+        'Yes',
+        'Fluoride / Grey',
+        'GLU105',
+        'GOD-POD',
+        'Daily',
+        'No',
+        '',
+        '',
+        '',
+        0,
+        0,
+      ],
+    ];
+
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...sampleRows]);
+    ws['!cols'] = [
+      { wch: 30 },
+      { wch: 14 },
+      { wch: 16 },
+      { wch: 18 },
+      { wch: 45 },
+      { wch: 14 },
+      { wch: 14 },
+      { wch: 14 },
+      { wch: 20 },
+      { wch: 12 },
+      { wch: 22 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 18 },
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 20 },
+      { wch: 22 },
+    ];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Diagnostic Tests');
+    XLSX.writeFile(wb, 'NationalsLab_Test_Catalog_Template.xlsx');
+  };
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
+      setBulkError('Please select a valid Excel file (.xlsx or .xls)');
+      return;
+    }
+
+    setSelectedFile(file);
+    setBulkError('');
+    setBulkSuccess('');
+
+    // Parse Excel for immediate client preview
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const bstr = evt.target.result;
+        const wb = XLSX.read(bstr, { type: 'binary' });
+        const wsname = wb.SheetNames[0];
+        const ws = wb.Sheets[wsname];
+        const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+
+        // Skip header row and extract valid rows
+        const dataRows = rows.slice(1).filter((r) => r && r[0]);
+        setParsedTests(dataRows);
+      } catch (err) {
+        console.warn('Preview parse warning:', err);
+      }
+    };
+    reader.readAsBinaryString(file);
+  };
+
+  const handleExecuteBulkUpload = async () => {
+    if (!selectedFile) {
+      setBulkError('Please select an Excel spreadsheet file to upload');
+      return;
+    }
+
+    setBulkLoading(true);
+    setBulkError('');
+    setBulkSuccess('');
+
+    const labIdToUse = currentLab?.labId || LAB_ID;
+
+    try {
+      const result = await bulkUploadTests(selectedFile, labIdToUse);
+      const count = Array.isArray(result) ? result.length : (parsedTests.length || 1);
+      setBulkSuccess(`🎉 Success! ${count} diagnostic tests imported into catalog!`);
+      setSelectedFile(null);
+      setParsedTests([]);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      onRefresh();
+      setTimeout(() => {
+        setBulkModalOpen(false);
+        setBulkSuccess('');
+      }, 2000);
+    } catch (err) {
+      setBulkError(err.message || 'Failed to upload tests. Please ensure the Excel columns match the template.');
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
   return (
     <div className="admin-tests-tab">
       {/* Header and Controls */}
@@ -156,9 +383,31 @@ const AdminTestsTab = ({ tests = [], currentLab = null, onRefresh }) => {
           </select>
         </div>
 
-        <button className="btn-admin-action btn-primary-action" onClick={handleOpenAdd}>
-          ➕ Add New Test
-        </button>
+        <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
+          <button
+            className="btn-admin-action btn-secondary-action"
+            onClick={handleDownloadTemplate}
+            title="Download formatted sample Excel sheet"
+          >
+            📥 Excel Template
+          </button>
+          <button
+            className="btn-admin-action btn-purple-action"
+            onClick={() => {
+              setBulkError('');
+              setBulkSuccess('');
+              setSelectedFile(null);
+              setParsedTests([]);
+              setBulkModalOpen(true);
+            }}
+            title="Bulk import tests from Excel spreadsheet"
+          >
+            📤 Upload Excel
+          </button>
+          <button className="btn-admin-action btn-primary-action" onClick={handleOpenAdd}>
+            ➕ Add New Test
+          </button>
+        </div>
       </div>
 
       {/* Tests Table */}
@@ -375,6 +624,141 @@ const AdminTestsTab = ({ tests = [], currentLab = null, onRefresh }) => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Bulk Excel Upload Modal */}
+      {bulkModalOpen && (
+        <div className="admin-modal-overlay" onClick={() => !bulkLoading && setBulkModalOpen(false)}>
+          <div className="admin-modal-box" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '680px' }}>
+            <div className="admin-modal-header">
+              <h3>📊 Bulk Import Tests via Excel</h3>
+              <button
+                disabled={bulkLoading}
+                onClick={() => setBulkModalOpen(false)}
+                style={{ background: 'transparent', border: 'none', fontSize: '1.2rem', cursor: 'pointer' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="admin-modal-body">
+              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: '12px 16px', borderRadius: '8px', fontSize: '0.85rem', color: '#475569', marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                <div>
+                  <strong>Need the Excel format?</strong> Download the sample spreadsheet, fill in your tests, and upload it here.
+                </div>
+                <button
+                  type="button"
+                  onClick={handleDownloadTemplate}
+                  className="btn-admin-action btn-secondary-action"
+                  style={{ padding: '6px 12px', fontSize: '0.8rem' }}
+                >
+                  📥 Download Template
+                </button>
+              </div>
+
+              {bulkError && (
+                <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', padding: '10px 14px', borderRadius: '8px', fontSize: '0.85rem', marginBottom: '1rem' }}>
+                  {bulkError}
+                </div>
+              )}
+
+              {bulkSuccess && (
+                <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', color: '#16a34a', padding: '10px 14px', borderRadius: '8px', fontSize: '0.85rem', marginBottom: '1rem', fontWeight: 600 }}>
+                  {bulkSuccess}
+                </div>
+              )}
+
+              {/* Dropzone */}
+              <input
+                type="file"
+                ref={fileInputRef}
+                accept=".xlsx, .xls"
+                onChange={handleFileSelect}
+                style={{ display: 'none' }}
+              />
+
+              <div
+                className="excel-dropzone"
+                onClick={() => !bulkLoading && fileInputRef.current?.click()}
+              >
+                <span className="excel-dropzone-icon">📑</span>
+                {selectedFile ? (
+                  <div>
+                    <strong style={{ color: '#0f172a', fontSize: '1rem' }}>{selectedFile.name}</strong>
+                    <div style={{ color: '#64748b', fontSize: '0.82rem', marginTop: '4px' }}>
+                      {(selectedFile.size / 1024).toFixed(1)} KB • Click to change file
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <strong style={{ color: '#0f172a', fontSize: '0.95rem' }}>Click to browse Excel catalog (.xlsx / .xls)</strong>
+                    <div style={{ color: '#64748b', fontSize: '0.82rem', marginTop: '4px' }}>
+                      Supports all standard diagnostic parameters matching NationalsLab catalog
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Live Preview Table */}
+              {parsedTests.length > 0 && (
+                <div className="excel-preview-box">
+                  <div className="excel-preview-header">
+                    <span>Preview ({parsedTests.length} tests found in sheet)</span>
+                    <span style={{ color: '#059669', fontSize: '0.78rem' }}>✓ Header validated</span>
+                  </div>
+                  <div className="excel-preview-table-wrap">
+                    <table className="admin-table">
+                      <thead>
+                        <tr>
+                          <th>#</th>
+                          <th>Test Name</th>
+                          <th>Original MRP</th>
+                          <th>Discounted Price</th>
+                          <th>Category</th>
+                          <th>Sample Type</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {parsedTests.map((row, idx) => (
+                          <tr key={idx}>
+                            <td>{idx + 1}</td>
+                            <td><strong>{row[0] || '—'}</strong></td>
+                            <td>₹{row[1] || '0'}</td>
+                            <td style={{ color: '#059669', fontWeight: 700 }}>₹{row[2] || '0'}</td>
+                            <td>{row[3] || 'General'}</td>
+                            <td>{row[5] || 'Blood'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="admin-modal-footer">
+              <button
+                type="button"
+                className="btn-admin-action btn-secondary-action"
+                disabled={bulkLoading}
+                onClick={() => setBulkModalOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn-admin-action btn-purple-action"
+                disabled={bulkLoading || !selectedFile}
+                onClick={handleExecuteBulkUpload}
+              >
+                {bulkLoading
+                  ? 'Importing Tests…'
+                  : selectedFile
+                  ? `Import ${parsedTests.length || ''} Tests`
+                  : 'Select Excel File'}
+              </button>
+            </div>
           </div>
         </div>
       )}
