@@ -923,3 +923,133 @@
   overflow-y: auto;
   font-size: 0.82rem;
 }
+
+/* Compact High-Density Diagnostic Catalog Table */
+.admin-table-dense {
+  font-size: 0.82rem;
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+}
+
+.admin-table-dense th {
+  padding: 10px 12px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #475569;
+  background: #f8fafc;
+  border-bottom: 2px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.admin-table-dense td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #edf2f7;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.admin-table-dense tbody tr:hover td {
+  background: #f1f5f9;
+}
+
+/* Sticky Action Column */
+.th-sticky-actions {
+  position: sticky !important;
+  right: 0;
+  background: #f8fafc !important;
+  z-index: 10;
+  box-shadow: -4px 0 8px rgba(0, 0, 0, 0.06);
+  text-align: center;
+}
+
+.td-sticky-actions {
+  position: sticky !important;
+  right: 0;
+  background: #ffffff !important;
+  z-index: 8;
+  box-shadow: -4px 0 8px rgba(0, 0, 0, 0.06);
+  text-align: center;
+}
+
+.admin-table-dense tbody tr:hover .td-sticky-actions {
+  background: #f1f5f9 !important;
+}
+
+/* Clear Accessible Action Buttons */
+.btn-table-edit {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  color: #ffffff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 1px 3px rgba(2, 132, 199, 0.25);
+  transition: all 0.2s ease;
+}
+
+.btn-table-edit:hover {
+  background: #0284c7;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(2, 132, 199, 0.35);
+}
+
+.btn-table-delete {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: #ffffff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 1px 3px rgba(239, 68, 68, 0.25);
+  transition: all 0.2s ease;
+}
+
+.btn-table-delete:hover {
+  background: #b91c1c;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(239, 68, 68, 0.35);
+}
+
+/* NA Tag and Badges */
+.na-tag {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: #f1f5f9;
+  color: #94a3b8;
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-family: monospace;
+  letter-spacing: 0.5px;
+}
+
+.benefit-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 9px;
+  border-radius: 6px;
+  background: #ecfdf5;
+  color: #047857;
+  font-weight: 800;
+  font-size: 0.84rem;
+  border: 1px solid #a7f3d0;
+}
+
+.benefit-badge.negative {
+  background: #fef2f2;
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+
