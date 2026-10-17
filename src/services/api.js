@@ -1,7 +1,8 @@
 // API service layer for NationalsLab frontend
 // Connects to the HealthCall Spring Boot backend
 
-const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+const rawBaseUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+const BASE_URL = rawBaseUrl.trim().replace(/\/+$/, '');
 
 // NationalsLab's lab ID in the backend system
 const rawLabId = process.env.REACT_APP_LAB_ID;
@@ -33,7 +34,8 @@ const getAuthHeaders = () => {
 
 // Generic request helper
 const request = async (method, path, body = null, params = null) => {
-  const url = new URL(`${BASE_URL}${path}`);
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  const url = new URL(`${BASE_URL}${cleanPath}`);
   if (params) {
     Object.entries(params).forEach(([k, v]) => {
       if (v !== null && v !== undefined) url.searchParams.append(k, v);
